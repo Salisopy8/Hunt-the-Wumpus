@@ -49,13 +49,29 @@ def instructions_button():
         write_csv()
                     
     def instructions_display():
-        instructions_text = ct.CTkTextbox(instructions_frame, width=400, height=500, font=("", 10), )
-        instructions_text.place(x=50, y=400)
-        instructions_text2 = ct.CTkLabel(instructions_text,  text="hello" )
-        instructions_text2.pack()
+        instructions_text = ct.CTkLabel(instructions_frame,  text="""You are a hunter lost in a complex cave system. 
+There is a Wumpus lurking somewhere in the caves, 
+waiting for you to walk into his arms. 
+Apart from the Wumpus there are also bats that live in the caves,
+teleporting you to a random cave if you happen to run into them. 
+You only have 5 arrows.
+Your objective is to locate and shoot the Wumpus with one of your arrows. 
+But beware, if you run out of arrows, YOU LOSE! 
+You can travel through the caves in the four cardinal directions (N,E,S,W). 
+Some caves can be tricky, looping back to itself, or even lead to dead ends. 
+Shooting an arrow into any of these may result in killing yourself. 
+BE CAUTIOUS, AND GOOD LUCK!""", anchor='w', justify='left', font=("", 14))
+        instructions_text.place(x=50, y=350)
         
         
-        
+    def leaderboard_display():
+        leaderboard_text = "Leaderboard:\nName\t\tScore\t\tTime\n"
+        for i, row in df.iterrows():
+            leaderboard_text += f"{row['Name']}\t\t{row['Score']}\t\t{row['Time']}\n"
+            leaderboard_label = ct.CTkLabel(instructions_frame, text=leaderboard_text, font=("", 16))
+            leaderboard_label.place(x=540, y=160)
+    
+    
     username_entry = ct.CTkEntry(instructions_frame, placeholder_text="Username")
     username_entry.place(x=50, y=100)
 
@@ -63,25 +79,23 @@ def instructions_button():
     enter_button.place(x=250, y=100)
     
         
-    leaderboard_prompt = ct.CTkLabel(instructions_frame, text="Do you want to read the instructions?", font=("", 20),)
-    leaderboard_prompt.place(x=50, y=200)  
+    instructions_prompt = ct.CTkLabel(instructions_frame, text="Do you want to read the instructions?", font=("", 20),)
+    instructions_prompt.place(x=50, y=200)  
     
-    leaderboard_yes = ct.CTkButton(instructions_frame, text="Yes", font=('', 14), fg_color=('#ff4400'), command=instructions_display)
-    leaderboard_yes.place(x=50, y=250)
+    instructions_yes = ct.CTkButton(instructions_frame, text="Yes", font=('', 14), fg_color=('#ff4400'), command=instructions_display)
+    instructions_yes.place(x=50, y=250)
+    instructions_no = ct.CTkButton(instructions_frame, text="No", font=('', 14), fg_color=('#ff4400'), )
+    instructions_no.place(x=250, y=250)
+    
+    leaderboard_prompt = ct.CTkLabel(instructions_frame, text="Do you want to view the leaderboards?", font=("", 20))
+    leaderboard_prompt.place(x=520, y=50)
+
+    leaderboard_yes = ct.CTkButton(instructions_frame, text="Yes", font=('', 14), fg_color=('#ff4400'), command=leaderboard_display    )
+    leaderboard_yes.place(x=520, y=100)
     leaderboard_no = ct.CTkButton(instructions_frame, text="No", font=('', 14), fg_color=('#ff4400'), )
-    leaderboard_no.place(x=250, y=250)
+    leaderboard_no.place(x=720, y=100)
     
-
-    ct.CTkLabel(instructions_frame, text="Name", font=("", 14)).grid_propagate(False,row=0, column=0, padx=10, pady=5)
-    ct.CTkLabel(instructions_frame, text="Score", font=("", 14)).grid_propagate(False,row=0, column=1, padx=10, pady=5)
-    ct.CTkLabel(instructions_frame, text="Time", font=("", 14)).grid_propagate(False,row=0, column=2, padx=10, pady=5)
-
    
-    for i, row in df.iterrows():
-        ct.CTkLabel(instructions_frame, text=row["Name"]).grid_propagate(False, row=i+1, column=0, padx=10, pady=5)
-        ct.CTkLabel(instructions_frame, text=row["Score"]).grid_propagate(False,row=i+1, column=1, padx=10, pady=5)
-        ct.CTkLabel(instructions_frame, text=row["Time"]).grid_propagate(False,row=i+1, column=2, padx=10, pady=5)
-    
     
     
     

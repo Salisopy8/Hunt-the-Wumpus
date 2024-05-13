@@ -41,3 +41,13 @@ def instructions_button():
                                                                                     However, some caves can be tricky, and may loop back to itself, or even lead to dead ends. 
                                                                                     Shooting an arrow into any of these may result in killing yourself. 
                                                                                     BE CAUTIOUS, AND GOOD LUCK!"""
+                                                                                    
+                                                                                     ct.CTkLabel(instructions_frame, text="Name", font=("", 14)).grid_propagate(False,row=0, column=0, padx=10, pady=5)
+    ct.CTkLabel(instructions_frame, text="Score", font=("", 14)).grid_propagate(False,row=0, column=1, padx=10, pady=5)
+    ct.CTkLabel(instructions_frame, text="Time", font=("", 14)).grid_propagate(False,row=0, column=2, padx=10, pady=5)
+
+   
+    for i, row in df.iterrows():
+        ct.CTkLabel(instructions_frame, text=row["Name"]).grid_propagate(False, row=i+1, column=0, padx=10, pady=5)
+        ct.CTkLabel(instructions_frame, text=row["Score"]).grid_propagate(False,row=i+1, column=1, padx=10, pady=5)
+        ct.CTkLabel(instructions_frame, text=row["Time"]).grid_propagate(False,row=i+1, column=2, padx=10, pady=5)
