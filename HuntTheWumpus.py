@@ -56,20 +56,28 @@ Apart from the Wumpus there are also bats that live in the caves,
 teleporting you to a random cave if you happen to run into them. 
 You only have 5 arrows.
 Your objective is to locate and shoot the Wumpus with one of your arrows. 
-But beware, if you run out of arrows, YOU LOSE! 
-You can travel through the caves in the four cardinal directions (N,E,S,W). 
-Some caves can be tricky, looping back to itself, or even lead to dead ends. 
+But beware, if you run out of arrows; 
+YOU LOSE! 
+You can travel through the caves in four cardinal directions (N,E,S,W). 
+Some caves are tricky, looping back to itself, or even lead to dead ends. 
 Shooting an arrow into any of these may result in killing yourself. 
 BE CAUTIOUS, AND GOOD LUCK!""", anchor='w', justify='left', font=("", 14))
         instructions_text.place(x=50, y=350)
         
         
     def leaderboard_display():
-        leaderboard_text = "Leaderboard:\nName\t\tScore\t\tTime\n"
-        for i, row in df.iterrows():
+        df_score_sorted = df.sort_values(by='Score', ascending=False).head(10)
+        leaderboard_text = "Score Leaderboard:\nName\t\tScore\t\tTime\n"
+        for i, row in df_score_sorted.iterrows():
             leaderboard_text += f"{row['Name']}\t\t{row['Score']}\t\t{row['Time']}\n"
             leaderboard_label = ct.CTkLabel(instructions_frame, text=leaderboard_text, font=("", 16))
-            leaderboard_label.place(x=540, y=160)
+            leaderboard_label.place(x=540, y=150)    
+        df_time_sorted = df.sort_values(by='Time', ascending=True).head(10)
+        leaderboard_text2 = "Time Leaderboard:\nName\t\tScore\t\tTime\n"
+        for i, row in df_time_sorted.iterrows():
+            leaderboard_text2 += f"{row['Name']}\t\t{row['Score']}\t\t{row['Time']}\n"
+            leaderboard_label2 = ct.CTkLabel(instructions_frame, text=leaderboard_text2, font=("", 16))
+            leaderboard_label2.place(x=540, y=385)
     
     
     username_entry = ct.CTkEntry(instructions_frame, placeholder_text="Username")
