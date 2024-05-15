@@ -45,6 +45,12 @@ def play_screen():
     def north_selection():
         global current_cave
         current_cave = cave_connections[0]
+        if current_cave == 99:
+            current_cave == 91  
+        elif current_cave == 98:
+            
+        else:
+
         play_window.withdraw()
         play_screen()
         
