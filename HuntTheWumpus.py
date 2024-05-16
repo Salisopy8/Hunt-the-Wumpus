@@ -4,6 +4,7 @@ from PIL import Image
 import pandas as pd
 import random
 
+#MESSAGES NOT DISPLAYED
 
 app = ct.CTk()
 app.resizable(False, False)
@@ -29,6 +30,7 @@ count = 4
 arrows = 0
 moves = 0
 time = 0
+wumpus_location = 9
 ct.set_appearance_mode("Dark")  
 ct.set_default_color_theme("blue")   
 
@@ -41,36 +43,6 @@ def write_csv():
 
 def play_screen():
     cave_connections = cave_system[current_cave]
-    
-    def north_selection():
-        global current_cave
-        current_cave = cave_connections[0]
-        if current_cave == 99:
-            current_cave == 91  
-        elif current_cave == 98:
-            
-        else:
-
-        play_window.withdraw()
-        play_screen()
-        
-    def east_selection():
-        global current_cave
-        current_cave = cave_connections[1]
-        play_window.withdraw()
-        play_screen()
-        
-    def south_selection():
-        global current_cave
-        current_cave = cave_connections[2]
-        play_window.withdraw()
-        play_screen()
-        
-    def west_selection():
-        global current_cave
-        current_cave = cave_connections[3]
-        play_window.withdraw()
-        play_screen()
     
     instructions_window.withdraw()
     play_window = ct.CTkToplevel(app)
@@ -88,6 +60,37 @@ def play_screen():
     arrow_num.place(x=200, y=20) 
     move_num = ct.CTkLabel(play_frame, text=f"Moves made: {moves} " , font=("", 20))
     move_num.place(x=400, y=20) 
+    
+    def move_player(next_cave):
+        global current_cave, moves
+        moves += 1
+        if next_cave == 99:
+            situational_message = ct.CTkLabel(play_frame, text="Whoops, You ran into a dead end!", font=('', 18))
+            situational_message.place(x=50, y=60)
+        elif next_cave == 98:
+            situational_message = ct.CTkLabel(play_frame, text="Oh no, You walked in a loop!", font=('', 18))
+            situational_message.place(x=50, y=100)
+        elif next_cave == wumpus_location:
+            situational_message = ct.CTkLabel(play_frame, text="Game Over! You encountered the Wumpus!", font=('', 18))
+            situational_message.place(x=50, y=140)
+        else:
+            current_cave = next_cave
+            play_window.withdraw()
+            play_screen()
+
+    def north_selection():
+        move_player(cave_connections[0])
+
+    def east_selection():
+        move_player(cave_connections[1])
+
+    def south_selection():
+        move_player(cave_connections[2])
+
+    def west_selection():
+        move_player(cave_connections[3])
+    
+      
     
     cave_image = ct.CTkImage(light_image=Image.open("cave.png"), size=(200, 200))
     cave_image2 = ct.CTkImage(light_image=Image.open("cave.png"), size=(200, 200))
