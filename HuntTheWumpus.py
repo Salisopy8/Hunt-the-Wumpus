@@ -3,50 +3,95 @@ import tkinter as tk
 from PIL import Image
 import pandas as pd
 import random
+import time
 
-#MESSAGES NOT DISPLAYED
+# Load user data
+df = pd.read_csv("Users.csv")
 
+# Cave system definition
+cave_system = [
+    (1, 5, 98, 98),  # Cave 0
+    (2, 5, 99, 0),   # Cave 1
+    (1, 3, 4, 5),    # Cave 2
+    (2, 98, 98, 4),  # Cave 3
+    (3, 9, 8, 2),    # Cave 4
+    (1, 2, 6, 0),    # Cave 5
+    (5, 8, 99, 7),   # Cave 6
+    (6, 8, 10, 99),  # Cave 7
+    (4, 9, 7, 6),    # Cave 8
+    (4, 10, 99, 8),  # Cave 9
+    (7, 9, 98, 98)   # Cave 10
+]
+
+# Initialize game variables
+current_cave = random.randint(0, 10)
+arrows = 5
+moves = 0
+wumpus_location = 9
+start_time = 0
+win = 0
+
+# CTkinter settings
+ct.set_appearance_mode("Dark")
+ct.set_default_color_theme("blue")
+
+# Main Application
 app = ct.CTk()
 app.resizable(False, False)
 app.geometry("1200x800+420+120")
 app.title("Hunt The Wumpus")
-df = pd.read_csv("Users.csv")
-
-cave_system = [
-    (1,5,98,98),  # Cave 0
-    (2,5,99,0),     # Cave 1
-    (1,3,4,5),       # Cave 2
-    (2,98,98,4),   # Cave 3
-    (3,9,8,2),   # Cave 4
-    (1,2,6,0),  # Cave 5
-    (5,8,99,7),
-    (6,8,10,99),
-    (4,9,7,6),
-    (4,10,99,8),
-    (7,9,98,98)
-]
-current_cave = random.randint(0,10)
-count = 4
-arrows = 0
-moves = 0
-time = 0
-wumpus_location = 9
-ct.set_appearance_mode("Dark")  
-ct.set_default_color_theme("blue")   
-
 
 def write_csv():
+    global username
     df.loc[len(df)] = [username, 0, 0]
-    #SCORE
-    #TIME
     df.to_csv('Users.csv', index=False)
 
-def play_screen():
-    cave_connections = cave_system[current_cave]
+def end_screen():
+    global win, end_window
+    play_window.withdraw()
+    end_window = ct.CTkToplevel(app)
+    end_window.title("End Screen")
+    end_window.geometry("1200x800+420+120")
+    end_window.resizable(False, False)
     
+    end_frame = ct.CTkFrame(end_window, width=960, height=640)
+    end_frame.place(relx=0.1, rely=0.1)
+    end_frame.pack_propagate(False)
+    
+    wumpus = ct.CTkImage(light_image=Image.open("wumpus.png"), size=(245, 215))
+    image_label = ct.CTkLabel(end_frame, image=wumpus, text="")
+    image_label.place(relx=0.38, rely=0.2)
+    
+    play_again_button = ct.CTkButton(end_frame, text="Play", font=('Arial', 18), fg_color=('#ff4400'), command=middle_screen)
+    play_again_button.place(x=300, y=500)
+
+    exit_button = ct.CTkButton(end_frame, text="Exit", font=('Arial', 18), fg_color=('#ff4400'), command=app.quit)
+    exit_button.place(x=540, y=500)
+    
+    message_text = ""
+    if win == 1:        
+        message_text = "Unlucky! You got killed by the Wumpus!"
+    elif win == 2:
+        message_text = "Oh no! You ran out of arrows, YOU LOSE!"
+    elif win == 3:
+        message_text = "Unlucky! Your arrow rebounded killing you!"
+    elif win == 4:
+        message_text = "Oh no! You shot yourself through a loop!"
+    elif win == 5:
+        message_text = "Congratulations! You shot the Wumpus. YOU WIN!"
+        
+    
+    end_message = ct.CTkLabel(end_frame, text=message_text, font=('', 22))
+    end_message.place(relx=0.5, rely=0.1, anchor="center")
+
+def play_screen():
     instructions_window.withdraw()
+    global current_cave, arrows, moves, start_time, play_window, win
+    start_time = time.time()
+
+    # Create play window
     play_window = ct.CTkToplevel(app)
-    play_window.title("Instructions")
+    play_window.title("Play Screen")
     play_window.geometry("1200x800+420+120")
     play_window.resizable(False, False)
     
@@ -54,70 +99,146 @@ def play_screen():
     play_frame.place(relx=0.1, rely=0.1)
     play_frame.pack_propagate(False)
     
-    current_cave_display = ct.CTkLabel(play_frame, text=f"Cave: {current_cave} ", font=("", 20))
-    current_cave_display.place(x=50, y=20) 
-    arrow_num = ct.CTkLabel(play_frame, text=f"Arrows left: {arrows}", font=("", 20))
-    arrow_num.place(x=200, y=20) 
-    move_num = ct.CTkLabel(play_frame, text=f"Moves made: {moves} " , font=("", 20))
-    move_num.place(x=400, y=20) 
+    # Display current status
+    current_cave_display = ct.CTkLabel(play_frame, text=f"Cave: {current_cave}", font=("", 20))
+    current_cave_display.place(x=50, y=20)
     
-    def move_player(next_cave):
-        global current_cave, moves
-        moves += 1
-        if next_cave == 99:
-            situational_message = ct.CTkLabel(play_frame, text="Whoops, You ran into a dead end!", font=('', 18))
-            situational_message.place(x=50, y=60)
-        elif next_cave == 98:
-            situational_message = ct.CTkLabel(play_frame, text="Oh no, You walked in a loop!", font=('', 18))
-            situational_message.place(x=50, y=100)
-        elif next_cave == wumpus_location:
-            situational_message = ct.CTkLabel(play_frame, text="Game Over! You encountered the Wumpus!", font=('', 18))
-            situational_message.place(x=50, y=140)
-        else:
-            current_cave = next_cave
-            play_window.withdraw()
-            play_screen()
+    arrow_num = ct.CTkLabel(play_frame, text=f"Arrows left: {arrows}", font=("", 20))
+    arrow_num.place(x=200, y=20)
+    
+    move_num = ct.CTkLabel(play_frame, text=f"Moves made: {moves}", font=("", 20))
+    move_num.place(x=400, y=20)
+    
+    situational_message = ct.CTkLabel(play_frame, text="", font=('', 18))
+    situational_message.place(x=50, y=60)
 
+    enemy_message = ct.CTkLabel(play_frame, text="", font=('', 18))
+    enemy_message.place(x=400, y=60)
+    
+    # Function to move player
+    def move_player(next_cave):
+        global current_cave, moves, wumpus_location, arrows, win
+
+        situational_message.configure(text="")
+        enemy_message.configure(text="")
+
+        if next_cave == 99:
+            situational_message.configure(text="Whoops, You ran into a dead end!")
+        elif next_cave == 98:
+            situational_message.configure(text="Oh no, You walked in a loop!")
+        elif next_cave == wumpus_location:
+            win = 1
+            end_screen()
+        else:
+            if wumpus_location in cave_system[next_cave]:
+                enemy_message.configure(text="A Wumpus is nearby!")
+            current_cave = next_cave
+            current_cave_display.configure(text=f"Cave: {current_cave}")
+
+        moves += 1
+        move_num.configure(text=f"Moves made: {moves}")
+    
+    # Movement buttons
     def north_selection():
-        move_player(cave_connections[0])
+        move_player(cave_system[current_cave][0])
 
     def east_selection():
-        move_player(cave_connections[1])
+        move_player(cave_system[current_cave][1])
 
     def south_selection():
-        move_player(cave_connections[2])
+        move_player(cave_system[current_cave][2])
 
     def west_selection():
-        move_player(cave_connections[3])
+        move_player(cave_system[current_cave][3])
     
-      
     
+    def shoot_action(shoot_cave):
+        global current_cave, moves, wumpus_location, arrows
+
+        situational_message.configure(text="")
+        enemy_message.configure(text="")
+
+        if shoot_cave == 99:
+            win = 3
+            end_screen()
+        elif shoot_cave == 98:
+            win = 4
+            end_screen()
+        elif shoot_cave == wumpus_location:
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+            print(elapsed_time)
+            win = 5
+            end_screen()
+        else:
+            situational_message.configure(text="Whoops, your shot missed!")
+            arrows = arrows - 1
+            if arrows < 1:
+                win = 2
+                end_screen()
+            else:
+                pass
+
+        moves = moves + 1
+        arrow_num.configure(text=f"Arrows left: {arrows}")
+        
+    
+    # Movement buttons
+    def north_shot():
+        shoot_action(cave_system[current_cave][0])
+
+    def east_shot():
+        shoot_action(cave_system[current_cave][1])
+
+    def south_shot():
+        shoot_action(cave_system[current_cave][2])
+
+    def west_shot():
+        shoot_action(cave_system[current_cave][3])
+
+    # Cave images
     cave_image = ct.CTkImage(light_image=Image.open("cave.png"), size=(200, 200))
-    cave_image2 = ct.CTkImage(light_image=Image.open("cave.png"), size=(200, 200))
-    cave_image3 = ct.CTkImage(light_image=Image.open("cave.png"), size=(200, 200))
-    cave_image4 = ct.CTkImage(light_image=Image.open("cave.png"), size=(200, 200))
+    cave_image_label = ct.CTkLabel(play_frame, image=cave_image, text="")
+    cave_image_label.place(x=380, y=130)
+
+    cave_image_label2 = ct.CTkLabel(play_frame, image=cave_image, text="")
+    cave_image_label2.place(x=170, y=280)
+
+    cave_image_label3 = ct.CTkLabel(play_frame, image=cave_image, text="")
+    cave_image_label3.place(x=580, y=280)
+
+    cave_image_label4 = ct.CTkLabel(play_frame, image=cave_image, text="")
+    cave_image_label4.place(x=380, y=430)
     
-    cave_image_label = ct.CTkLabel(play_frame, image=cave_image, text=("")) 
-    cave_image_label2 = ct.CTkLabel(play_frame, image=cave_image2, text=("")) 
-    cave_image_label3 = ct.CTkLabel(play_frame, image=cave_image3, text=("")) 
-    cave_image_label4 = ct.CTkLabel(play_frame, image=cave_image4, text=("")) 
+    move_label = ct.CTkLabel(play_frame, text="Move", font=('', 18))
+    move_label.place(x=98, y=480)
     
-    cave_image_label.place(x=380, y=130,)
-    cave_image_label2.place(x=170, y=280,)
-    cave_image_label3.place(x=580, y=280,)
-    cave_image_label4.place(x=380, y=430,)
+    shoot_label = ct.CTkLabel(play_frame, text="Shoot", font=('', 18))
+    shoot_label.place(x=805, y=480)
     
+    north_button = ct.CTkButton(play_frame, text="N", font=('', 16), fg_color=('#ff4400'), command=north_selection, width=40, height=40)
+    north_button.place(x=100, y=525)
+
+    east_button = ct.CTkButton(play_frame, text="E", font=('', 16), fg_color=('#ff4400'), command=east_selection, width=40, height=40)
+    east_button.place(x=170, y=555)
+
+    south_button = ct.CTkButton(play_frame, text="S", font=('', 16), fg_color=('#ff4400'), command=south_selection, width=40, height=40)
+    south_button.place(x=100, y=585)
+
+    west_button = ct.CTkButton(play_frame, text="W", font=('', 16), fg_color=('#ff4400'), command=west_selection, width=40, height=40)
+    west_button.place(x=30, y=555)
     
-    north_button = ct.CTkButton(play_frame, text="N", font=('', 16), fg_color=('#ff4400'), command=north_selection, width=40, height=40   )
-    north_button.place(x=460, y=325)
-    east_button = ct.CTkButton(play_frame, text="E", font=('', 16), fg_color=('#ff4400'), command=east_selection, width=40, height=40 )
-    east_button.place(x=530, y=355)
-    south_button = ct.CTkButton(play_frame, text="S", font=('', 16), fg_color=('#ff4400'), command=south_selection, width=40, height=40   )
-    south_button.place(x=460, y=385)
-    west_button = ct.CTkButton(play_frame, text="W", font=('', 16), fg_color=('#ff4400'), command=west_selection, width=40, height=40  )
-    west_button.place(x=390, y=355)
-    
-       
+    north_shoot_button = ct.CTkButton(play_frame, text="N", font=('', 16), fg_color=('#ff4400'), command=north_shot, width=40, height=40)
+    north_shoot_button.place(x=810, y=525)
+
+    east_shoot_button = ct.CTkButton(play_frame, text="E", font=('', 16), fg_color=('#ff4400'), command=east_shot, width=40, height=40)
+    east_shoot_button.place(x=880, y=555)
+
+    south_shoot_button = ct.CTkButton(play_frame, text="S", font=('', 16), fg_color=('#ff4400'), command=south_shot, width=40, height=40)
+    south_shoot_button.place(x=810, y=585)
+
+    west_shoot_button = ct.CTkButton(play_frame, text="W", font=('', 16), fg_color=('#ff4400'), command=west_shot, width=40, height=40)
+    west_shoot_button.place(x=740, y=555)
 
 def middle_screen():
     app.withdraw()
@@ -131,22 +252,26 @@ def middle_screen():
     instructions_frame.place(relx=0.1, rely=0.1)
     instructions_frame.pack_propagate(False)
    
-    username_prompt = ct.CTkLabel(instructions_frame, text="Please enter your username and press enter:", font=("", 20))
+    username_prompt = ct.CTkLabel(instructions_frame, text="Please enter your username (Max 7 Char) and press enter:", font=("", 16))
     username_prompt.place(x=50, y=50)  
     
+    error_label = ct.CTkLabel(instructions_frame, text="", font=("", 16),)
+    error_label.place(x=50, y=150)
+    
     usernames = df['Name'].to_list()
-    score = df['Score'].to_list()
-    time = df['Time'].to_list()
     
     def enter():
-        global username, count
+        global username
         username = username_entry.get()
         if username.strip():  # Check if username is not blank or only whitespace
-            usernames.append(username)
-            count += 1
-            write_csv()
+            if len(username) <= 7:  # Check if the username is 7 characters or less
+                usernames.append(username)
+                write_csv()
+                error_label.configure(text="")  # Clear any previous error message
+            else:
+                error_label.configure(text="Username must be 7 characters or less.")
         else:
-            pass  
+            error_label.configure(text="Username cannot be blank.")
                     
     def instructions_display():
         instructions_text = ct.CTkLabel(instructions_frame,  text="""You are a hunter lost in a complex cave system. 
@@ -170,14 +295,15 @@ BE CAUTIOUS, AND GOOD LUCK!""", anchor='w', justify='left', font=("", 14))
         leaderboard_text = "Score Leaderboard:\nName\t\tScore\t\tTime\n"
         for i, row in df_score_sorted.iterrows():
             leaderboard_text += f"{row['Name']}\t\t{row['Score']}\t\t{row['Time']}\n"
-            leaderboard_label = ct.CTkLabel(instructions_frame, text=leaderboard_text, font=("", 15))
-            leaderboard_label.place(x=540, y=150)    
+        leaderboard_label = ct.CTkLabel(instructions_frame, text=leaderboard_text, font=("", 15))
+        leaderboard_label.place(x=540, y=150)    
+
         df_time_sorted = df.sort_values(by='Time', ascending=True).head(10)
         leaderboard_text2 = "Time Leaderboard:\nName\t\tScore\t\tTime\n"
         for i, row in df_time_sorted.iterrows():
             leaderboard_text2 += f"{row['Name']}\t\t{row['Score']}\t\t{row['Time']}\n"
-            leaderboard_label2 = ct.CTkLabel(instructions_frame, text=leaderboard_text2, font=("", 15))
-            leaderboard_label2.place(x=540, y=380)
+        leaderboard_label2 = ct.CTkLabel(instructions_frame, text=leaderboard_text2, font=("", 15))
+        leaderboard_label2.place(x=540, y=380)
     
     
     username_entry = ct.CTkEntry(instructions_frame, placeholder_text="Username")
@@ -187,51 +313,46 @@ BE CAUTIOUS, AND GOOD LUCK!""", anchor='w', justify='left', font=("", 14))
     enter_button.place(x=250, y=100)
     
         
-    instructions_prompt = ct.CTkLabel(instructions_frame, text="Do you want to read the instructions?", font=("", 20),)
+    instructions_prompt = ct.CTkLabel(instructions_frame, text="Do you want to read the instructions?", font=("", 16))
     instructions_prompt.place(x=50, y=200)  
     
     instructions_yes = ct.CTkButton(instructions_frame, text="Yes", font=('', 14), fg_color=('#ff4400'), command=instructions_display)
     instructions_yes.place(x=50, y=250)
-    instructions_no = ct.CTkButton(instructions_frame, text="No", font=('', 14), fg_color=('#ff4400'), )
+
+    instructions_no = ct.CTkButton(instructions_frame, text="No", font=('', 14), fg_color=('#ff4400'))
     instructions_no.place(x=250, y=250)
     
-    leaderboard_prompt = ct.CTkLabel(instructions_frame, text="Do you want to view the leaderboards?", font=("", 20))
+    leaderboard_prompt = ct.CTkLabel(instructions_frame, text="Do you want to view the leaderboards?", font=("", 16))
     leaderboard_prompt.place(x=520, y=50)
 
-    leaderboard_yes = ct.CTkButton(instructions_frame, text="Yes", font=('', 14), fg_color=('#ff4400'), command=leaderboard_display    )
+    leaderboard_yes = ct.CTkButton(instructions_frame, text="Yes", font=('', 14), fg_color=('#ff4400'), command=leaderboard_display)
     leaderboard_yes.place(x=520, y=100)
-    leaderboard_no = ct.CTkButton(instructions_frame, text="No", font=('', 14), fg_color=('#ff4400'), )
+
+    leaderboard_no = ct.CTkButton(instructions_frame, text="No", font=('', 14), fg_color=('#ff4400'))
     leaderboard_no.place(x=720, y=100)
     
-    play_button = ct.CTkButton(instructions_frame, text="Play", font=('', 14), fg_color=('#ff4400'), command=play_screen )
+    play_button = ct.CTkButton(instructions_frame, text="Play", font=('', 14), fg_color=('#ff4400'), command=play_screen)
     play_button.place(x=400, y=600)
-    
-      
-    
-   
-    
+
+# Main app frame
 app_frame = ct.CTkFrame(app, width=960, height=640)
 app_frame.place(relx=0.1, rely=0.1)
 app_frame.pack_propagate(False)
 
-textbox = ct.CTkLabel(app_frame, text="Welcome to Hunt the Wumpus", font=("", 30))
-textbox.pack(padx=10, pady=20)  
+welcome_message = ct.CTkLabel(app_frame, text="Welcome to Hunt the Wumpus", font=("", 30))
+welcome_message.pack(padx=10, pady=20)  
 
-textbox2 = ct.CTkLabel(app_frame, text="Would you like to play?", font=("", 20))
-textbox2.pack(padx=10, pady=0)  
+play_message = ct.CTkLabel(app_frame, text="Would you like to play?", font=("", 20))
+play_message.pack(padx=10, pady=0)  
 
 wumpus = ct.CTkImage(light_image=Image.open("wumpus.png"), size=(245, 215))
+image_label = ct.CTkLabel(app_frame, image=wumpus, text="")
+image_label.place(relx=0.38, rely=0.2)
 
-image_label = ct.CTkLabel(app_frame, image=wumpus, text=("")) 
-image_label.place(relx=0.38, rely=0.2,)
+play_button = ct.CTkButton(app_frame, text="Play", font=('Arial', 18), fg_color=('#ff4400'), command=middle_screen)
+play_button.place(x=300, y=500)
 
-yes_button = ct.CTkButton(app_frame, text="Play", font=('Arial', 18), fg_color=('#ff4400'), command=middle_screen)
-yes_button.place(x=300, y=500)
+exit_button = ct.CTkButton(app_frame, text="Exit", font=('Arial', 18), fg_color=('#ff4400'), command=app.quit)
+exit_button.place(x=540, y=500)
 
-no_button = ct.CTkButton(app_frame, text="Exit", font=('Arial', 18), fg_color=('#ff4400'), command=exit)
-no_button.place(x=540, y=500)
-
- 
- 
-                
 app.mainloop()
