@@ -4,9 +4,7 @@ from PIL import Image
 import pandas as pd
 import random
 import time
-
-from fontTools.ttLib import TTFont
-font = TTFont('/path/to/font.ttf')
+import tkinter.font
 
 # Load user data
 df = pd.read_csv("Users.csv")
@@ -98,7 +96,7 @@ def end_screen():
 
 def play_screen():
     instructions_window.withdraw()
-    global current_cave, arrows, moves, start_time, play_window, win
+    global current_cave, arrows, moves, start_time, play_window, win, situational_message, enemy_message
     start_time = time.time()
 
     # Create play window
@@ -127,9 +125,9 @@ def play_screen():
     enemy_message = ct.CTkLabel(play_frame, text="", font=('', 18))
     enemy_message.place(x=50, y=100)
     
-    if wumpus_location == current_cave:
+    if wumpus_location in cave_system[current_cave]:
         enemy_message.configure(text="A Wumpus is nearby!")
-    elif bats_location == current_cave:
+    if bats_location in cave_system[current_cave]:
         situational_message.configure(text="Watch out! There are bats nearby!")
     
     # Function to move player
@@ -274,15 +272,15 @@ def middle_screen():
     app.withdraw()
     global instructions_window, current_cave, wumpus_location, bats_location, arrows
     arrows = 5
-    wumpus_location = random.randint(0, 10)
-    current_cave = random.randint(0, 10)
-    bats_location = random.randint(0, 10)
+    wumpus_location = 6
+    current_cave = 8
+    bats_location = 9
     while bats_location == wumpus_location:
         bats_location = random.randint(0,10)
     
     while current_cave == wumpus_location or current_cave == bats_location:
         current_cave = random.randint(0, 10)
- 
+        
 
     instructions_window = ct.CTkToplevel(app)
     instructions_window.title("Instructions")
