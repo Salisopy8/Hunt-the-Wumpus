@@ -5,6 +5,9 @@ import pandas as pd
 import random
 import time
 
+from fontTools.ttLib import TTFont
+font = TTFont('/path/to/font.ttf')
+
 # Load user data
 df = pd.read_csv("Users.csv")
 
@@ -24,10 +27,10 @@ cave_system = [
 ]
 
 # Initialize game variables
-current_cave = random.randint(0, 10)
 arrows = 5
 moves = 0
 wumpus_location = 9
+current_cave = random.randint(0, 10)
 start_time = 0
 win = 0
 
@@ -43,12 +46,17 @@ app.title("Hunt The Wumpus")
 
 def write_csv():
     global username
-    df.loc[len(df)] = [username, 0, 0]
+    score = moves + (5 - arrows)
+    df.loc[len(df)] = [username, score, elapsed_time]
     df.to_csv('Users.csv', index=False)
 
 def end_screen():
     global win, end_window
     play_window.withdraw()
+    
+    if win == 5:
+        write_csv()
+        
     end_window = ct.CTkToplevel(app)
     end_window.title("End Screen")
     end_window.geometry("1200x800+420+120")
@@ -62,7 +70,11 @@ def end_screen():
     image_label = ct.CTkLabel(end_frame, image=wumpus, text="")
     image_label.place(relx=0.38, rely=0.2)
     
-    play_again_button = ct.CTkButton(end_frame, text="Play", font=('Arial', 18), fg_color=('#ff4400'), command=middle_screen)
+    def play_again():
+        end_window.destroy()
+        middle_screen()
+    
+    play_again_button = ct.CTkButton(end_frame, text="Play", font=('Arial', 18), fg_color=('#ff4400'), command=play_again)
     play_again_button.place(x=300, y=500)
 
     exit_button = ct.CTkButton(end_frame, text="Exit", font=('Arial', 18), fg_color=('#ff4400'), command=app.quit)
@@ -78,7 +90,7 @@ def end_screen():
     elif win == 4:
         message_text = "Oh no! You shot yourself through a loop!"
     elif win == 5:
-        message_text = "Congratulations! You shot the Wumpus. YOU WIN!"
+        message_text = f"Congratulations! You shot the Wumpus in {elapsed_time} seconds" 
         
     
     end_message = ct.CTkLabel(end_frame, text=message_text, font=('', 22))
@@ -113,7 +125,12 @@ def play_screen():
     situational_message.place(x=50, y=60)
 
     enemy_message = ct.CTkLabel(play_frame, text="", font=('', 18))
-    enemy_message.place(x=400, y=60)
+    enemy_message.place(x=50, y=100)
+    
+    if wumpus_location == current_cave:
+        enemy_message.configure(text="A Wumpus is nearby!")
+    elif bats_location == current_cave:
+        situational_message.configure(text="Watch out! There are bats nearby!")
     
     # Function to move player
     def move_player(next_cave):
@@ -129,11 +146,24 @@ def play_screen():
         elif next_cave == wumpus_location:
             win = 1
             end_screen()
+        elif next_cave == bats_location:
+            situational_message.configure(text="BATS! You have been teleported to a new cave!")
+            current_cave = random.randint(0, 10)
+            while current_cave == wumpus_location or current_cave == bats_location:
+                current_cave = random.randint(0, 10)
+            current_cave_display.configure(text=f"Cave: {current_cave}")
         else:
             if wumpus_location in cave_system[next_cave]:
                 enemy_message.configure(text="A Wumpus is nearby!")
             current_cave = next_cave
             current_cave_display.configure(text=f"Cave: {current_cave}")
+            
+            if bats_location in cave_system[next_cave]:
+                situational_message.configure(text="Watch out! There are bats nearby!")
+                current_cave = next_cave
+                current_cave_display.configure(text=f"Cave: {current_cave}")
+                
+            
 
         moves += 1
         move_num.configure(text=f"Moves made: {moves}")
@@ -153,7 +183,7 @@ def play_screen():
     
     
     def shoot_action(shoot_cave):
-        global current_cave, moves, wumpus_location, arrows
+        global current_cave, moves, wumpus_location, arrows, elapsed_time, win
 
         situational_message.configure(text="")
         enemy_message.configure(text="")
@@ -166,8 +196,7 @@ def play_screen():
             end_screen()
         elif shoot_cave == wumpus_location:
             end_time = time.time()
-            elapsed_time = end_time - start_time
-            print(elapsed_time)
+            elapsed_time = round(end_time - start_time, 2)
             win = 5
             end_screen()
         else:
@@ -215,6 +244,7 @@ def play_screen():
     
     shoot_label = ct.CTkLabel(play_frame, text="Shoot", font=('', 18))
     shoot_label.place(x=805, y=480)
+      
     
     north_button = ct.CTkButton(play_frame, text="N", font=('', 16), fg_color=('#ff4400'), command=north_selection, width=40, height=40)
     north_button.place(x=100, y=525)
@@ -242,7 +272,18 @@ def play_screen():
 
 def middle_screen():
     app.withdraw()
-    global instructions_window
+    global instructions_window, current_cave, wumpus_location, bats_location, arrows
+    arrows = 5
+    wumpus_location = random.randint(0, 10)
+    current_cave = random.randint(0, 10)
+    bats_location = random.randint(0, 10)
+    while bats_location == wumpus_location:
+        bats_location = random.randint(0,10)
+    
+    while current_cave == wumpus_location or current_cave == bats_location:
+        current_cave = random.randint(0, 10)
+ 
+
     instructions_window = ct.CTkToplevel(app)
     instructions_window.title("Instructions")
     instructions_window.geometry("1200x800+420+120")
@@ -266,8 +307,8 @@ def middle_screen():
         if username.strip():  # Check if username is not blank or only whitespace
             if len(username) <= 7:  # Check if the username is 7 characters or less
                 usernames.append(username)
-                write_csv()
                 error_label.configure(text="")  # Clear any previous error message
+                play_button.place(x=400, y=600)
             else:
                 error_label.configure(text="Username must be 7 characters or less.")
         else:
@@ -291,7 +332,7 @@ BE CAUTIOUS, AND GOOD LUCK!""", anchor='w', justify='left', font=("", 14))
         
         
     def leaderboard_display():
-        df_score_sorted = df.sort_values(by='Score', ascending=False).head(10)
+        df_score_sorted = df.sort_values(by='Score', ascending=True).head(10)
         leaderboard_text = "Score Leaderboard:\nName\t\tScore\t\tTime\n"
         for i, row in df_score_sorted.iterrows():
             leaderboard_text += f"{row['Name']}\t\t{row['Score']}\t\t{row['Time']}\n"
@@ -332,7 +373,7 @@ BE CAUTIOUS, AND GOOD LUCK!""", anchor='w', justify='left', font=("", 14))
     leaderboard_no.place(x=720, y=100)
     
     play_button = ct.CTkButton(instructions_frame, text="Play", font=('', 14), fg_color=('#ff4400'), command=play_screen)
-    play_button.place(x=400, y=600)
+    
 
 # Main app frame
 app_frame = ct.CTkFrame(app, width=960, height=640)
