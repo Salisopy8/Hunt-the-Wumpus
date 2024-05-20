@@ -4,7 +4,7 @@ from PIL import Image
 import pandas as pd
 import random
 import time
-import tkinter.font
+
 
 # Load user data
 df = pd.read_csv("Users.csv")
@@ -42,6 +42,7 @@ app.resizable(False, False)
 app.geometry("1200x800+420+120")
 app.title("Hunt The Wumpus")
 
+
 def write_csv():
     global username
     score = moves + (5 - arrows)
@@ -72,10 +73,10 @@ def end_screen():
         end_window.destroy()
         middle_screen()
     
-    play_again_button = ct.CTkButton(end_frame, text="Play", font=('Arial', 18), fg_color=('#ff4400'), command=play_again)
+    play_again_button = ct.CTkButton(end_frame, text="Play",  fg_color=('#ff4400'), font=('', 18),command=play_again)
     play_again_button.place(x=300, y=500)
 
-    exit_button = ct.CTkButton(end_frame, text="Exit", font=('Arial', 18), fg_color=('#ff4400'), command=app.quit)
+    exit_button = ct.CTkButton(end_frame, text="Exit", font=('', 18), fg_color=('#ff4400'), command=app.quit)
     exit_button.place(x=540, y=500)
     
     message_text = ""
@@ -272,9 +273,9 @@ def middle_screen():
     app.withdraw()
     global instructions_window, current_cave, wumpus_location, bats_location, arrows
     arrows = 5
-    wumpus_location = 6
-    current_cave = 8
-    bats_location = 9
+    wumpus_location = random.randint(0,10)
+    current_cave = random.randint(0,10)
+    bats_location = random.randint(0,10)
     while bats_location == wumpus_location:
         bats_location = random.randint(0,10)
     
@@ -294,7 +295,7 @@ def middle_screen():
     username_prompt = ct.CTkLabel(instructions_frame, text="Please enter your username (Max 7 Char) and press enter:", font=("", 16))
     username_prompt.place(x=50, y=50)  
     
-    error_label = ct.CTkLabel(instructions_frame, text="", font=("", 16),)
+    error_label = ct.CTkLabel(instructions_frame, text="", font=("", 16))
     error_label.place(x=50, y=150)
     
     usernames = df['Name'].to_list()
@@ -388,10 +389,10 @@ wumpus = ct.CTkImage(light_image=Image.open("wumpus.png"), size=(245, 215))
 image_label = ct.CTkLabel(app_frame, image=wumpus, text="")
 image_label.place(relx=0.38, rely=0.2)
 
-play_button = ct.CTkButton(app_frame, text="Play", font=('Arial', 18), fg_color=('#ff4400'), command=middle_screen)
+play_button = ct.CTkButton(app_frame, text="Play", font=('', 18), fg_color=('#ff4400'), command=middle_screen)
 play_button.place(x=300, y=500)
 
-exit_button = ct.CTkButton(app_frame, text="Exit", font=('Arial', 18), fg_color=('#ff4400'), command=app.quit)
+exit_button = ct.CTkButton(app_frame, text="Exit", font=('', 18), fg_color=('#ff4400'), command=app.quit)
 exit_button.place(x=540, y=500)
 
 app.mainloop()
