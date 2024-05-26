@@ -6,7 +6,7 @@ import random
 import time
 
 
-# Load user data
+# Reads user data from the User CSV file
 df = pd.read_csv("Users.csv")
 
 # Cave system definition
@@ -24,7 +24,7 @@ cave_system = [
     (7, 9, 98, 98)   # Cave 10
 ]
 
-# Initialize game variables
+# Initialized game variables
 arrows = 5
 moves = 0
 wumpus_location = 9
@@ -32,11 +32,11 @@ current_cave = random.randint(0, 10)
 start_time = 0
 win = 0
 
-# CTkinter settings
-ct.set_appearance_mode("Dark")
-ct.set_default_color_theme("blue")
+# Custom Tkinter GUI colour theme
+ct.set_appearance_mode("Dark") 
 
-# Main Application
+
+# C
 app = ct.CTk()
 app.resizable(False, False)
 app.geometry("1200x800+420+120")
@@ -271,7 +271,8 @@ def play_screen():
 
 def middle_screen():
     app.withdraw()
-    global instructions_window, current_cave, wumpus_location, bats_location, arrows
+    global instructions_window, current_cave, wumpus_location, bats_location, arrows, moves
+    moves = 0
     arrows = 5
     wumpus_location = random.randint(0,10)
     current_cave = random.randint(0,10)
